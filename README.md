@@ -7,7 +7,7 @@
         <h2>IUser Store com Dapper MVC</h2>
           <br>Curso <a href=https://www.udemy.com/course/aspnet-core-identity/> Asp.Net Coire Identity </a>.</br>
           </p>
-          Utilizei métodos CRUD com Dapper, realizei conecção com banco de dados em servidor doméstico e para além da ministração do curso, pude experimentar
+          Utilizei métodos CRUD com Dapper, realizei conecxão com banco de dados em servidor doméstico e para além da ministração do curso, pude experimentar
           alterar Views MVC para que os erros de Login fossem apresentados via View.
           </p>
           <img src="https://github.com/IngrithReis/Asp.NET-Core-Identity-Parte-1/blob/master/screenshot/Registro.PNG" height ="450" width ="350"> 

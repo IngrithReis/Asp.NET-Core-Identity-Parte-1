@@ -54,9 +54,9 @@ namespace App.Identity
         {
             var conection = new SqlConnection(
                 "Persist Security Info=False;" +
-                "User ID=***********;Password =*************;" +
+                "User ID=******;Password = *******;" +
                 "Initial Catalog=Curso_Identity;" +
-                "Data Source=192.********");
+                "Data Source=192.*************");
 
             conection.Open();
             return conection;

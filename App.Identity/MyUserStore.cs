@@ -53,10 +53,7 @@ namespace App.Identity
         public static DbConnection GetOpenConection()
         {
             var conection = new SqlConnection(
-                "Persist Security Info=False;" +
-                "User ID=******;Password = *******;" +
-                "Initial Catalog=Curso_Identity;" +
-                "Data Source=192.*************");
+                "");
 
             conection.Open();
             return conection;

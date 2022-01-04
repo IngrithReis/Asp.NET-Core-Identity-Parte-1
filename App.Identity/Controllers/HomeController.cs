@@ -1,6 +1,7 @@
 ﻿using App.Identity.Domain;
 using App.Identity.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -104,6 +105,20 @@ namespace App.Identity.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Success()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

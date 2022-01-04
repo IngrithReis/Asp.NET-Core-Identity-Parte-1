@@ -14,6 +14,6 @@ namespace App.Identity.Models
         public string Password { get; set; }
         [Compare("Password")]
         [DataType(DataType.Password)]
-        public string  ConfgirmPassword { get; set; }
+        public string  ConfirmPassword { get; set; }
     }
 }

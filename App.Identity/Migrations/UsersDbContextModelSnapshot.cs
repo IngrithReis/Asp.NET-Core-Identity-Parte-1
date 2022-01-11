@@ -19,6 +19,19 @@ namespace App.Identity.Migrations
                 .HasAnnotation("ProductVersion", "5.0.13")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("App.Identity.Domain.Organization", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Organizations");
+                });
+
             modelBuilder.Entity("App.Identity.Domain.Users", b =>
                 {
                     b.Property<string>("Id")
@@ -44,6 +57,9 @@ namespace App.Identity.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("Member")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NomeCompleto")
                         .HasColumnType("nvarchar(max)");
 
@@ -54,6 +70,9 @@ namespace App.Identity.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("OrgId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -83,6 +102,8 @@ namespace App.Identity.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("OrgId");
 
                     b.ToTable("AspNetUsers");
                 });
@@ -216,6 +237,15 @@ namespace App.Identity.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("App.Identity.Domain.Users", b =>
+                {
+                    b.HasOne("App.Identity.Domain.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrgId");
+
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

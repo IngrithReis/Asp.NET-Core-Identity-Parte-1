@@ -13,6 +13,21 @@ namespace App.Identity
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Organization>(org =>
+            {
+                org.ToTable("Organizations");
+                org.HasKey(x => x.Id);
+
+                org.HasMany<Users>()
+                .WithOne(x => x.Organization)
+                .HasForeignKey(x => x.OrgId)
+                .IsRequired(false);
+            }
+
+            );
         }
+
     }
 }
+

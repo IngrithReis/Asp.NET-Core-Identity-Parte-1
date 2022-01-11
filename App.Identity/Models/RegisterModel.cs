@@ -9,6 +9,13 @@ namespace App.Identity.Models
         [Display(Name = "Nome")]
         public string Name { get; set; }
 
+        [Display(Name = "Nome da Organização")]
+        public string OrganizationName { get; set; }
+
+        [Display(Name = "Email")]
+        [EmailAddress]
+        public string Email { get; set; }
+
         [Required(ErrorMessage = "{0} Campo obrigatório!")]
         [DataType(DataType.Password)]
         public string Password { get; set; }

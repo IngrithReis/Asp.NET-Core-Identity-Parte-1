@@ -32,15 +32,23 @@ namespace App.Identity
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
             services.AddDbContext<UsersDbContext>(
-                opt => opt.UseSqlServer(@"Server="
+                opt => opt.UseSqlServer(
+"
                                         , sql => sql.MigrationsAssembly(migrationAssembly)));
-                
-                
 
-            services.AddIdentityCore<Users>(options=> { });
-            services.AddScoped<IUserStore<Users>,UserOnlyStore<Users, UsersDbContext>>();
-            services.AddAuthentication("cookies")
-                    .AddCookie("cookies", options => options.LoginPath = "/Home/Login");
+
+
+            services.AddIdentity<Users, IdentityRole>(options => {
+                options.SignIn.RequireConfirmedEmail = true;
+            })
+                    .AddEntityFrameworkStores<UsersDbContext>()
+                    .AddDefaultTokenProviders();
+
+            services.Configure<DataProtectionTokenProviderOptions>(
+                options => options.TokenLifespan = TimeSpan.FromHours(3));
+
+            services.AddScoped<IUserClaimsPrincipalFactory<Users>, UsersClaimPrincipalFactory>();
+            services.ConfigureApplicationCookie(options => options.LoginPath = "/Home/Login");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

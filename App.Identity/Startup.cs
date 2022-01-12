@@ -32,17 +32,38 @@ namespace App.Identity
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
             services.AddDbContext<UsersDbContext>(
-                opt => opt.UseSqlServer(
-"
+                opt => opt.UseSqlServer(@""
                                         , sql => sql.MigrationsAssembly(migrationAssembly)));
 
 
 
-            services.AddIdentity<Users, IdentityRole>(options => {
+            services.AddIdentity<Users, IdentityRole>(options =>
+            {
                 options.SignIn.RequireConfirmedEmail = true;
+
+                // configuração Password (dados requeridos em criação de senha, ou não requeridos, tamanho etc...)
+
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 4;
+
+                // opçãoes para bloqueio de usuário em tentativas de vezes de login
+                options.Lockout.MaxFailedAccessAttempts = 3;
+
+                options.Lockout.AllowedForNewUsers = true;
+
+
+
+
             })
                     .AddEntityFrameworkStores<UsersDbContext>()
-                    .AddDefaultTokenProviders();
+                    .AddDefaultTokenProviders()
+
+
+            // implementação da classe "NaoContemValidadorSenha"
+                    .AddPasswordValidator<NaoContemValidadorSenha<Users>>();
 
             services.Configure<DataProtectionTokenProviderOptions>(
                 options => options.TokenLifespan = TimeSpan.FromHours(3));

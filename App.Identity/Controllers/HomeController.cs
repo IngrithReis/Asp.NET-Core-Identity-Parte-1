@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -46,30 +47,74 @@ namespace App.Identity.Controllers
             {
                 var user = await _userManager.FindByNameAsync(model.UserName);
 
-                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
-                { 
-                    if( !await _userManager.IsEmailConfirmedAsync(user))
+                if (user != null && !await _userManager.IsLockedOutAsync(user)) // caso usuário seja diferente de bloqueado, naõ terá acesso
+                {
+                    if (await _userManager.CheckPasswordAsync(user, model.Password))
                     {
-                        ModelState.AddModelError("", "Este endereço de e-mail não é válido!");
-                        return View();
+                        if (!await _userManager.IsEmailConfirmedAsync(user))
+                        {
+                            ModelState.AddModelError("", "Este endereço de e-mail não foi validado!");
+                            return View();
+                        }
+                        // reseta a contagem de tentativas de login com falha
+
+                        await _userManager.ResetAccessFailedCountAsync(user); 
+
+                        if(await _userManager.GetTwoFactorEnabledAsync(user)) 
+                        {
+                            var validador = await _userManager.GetValidTwoFactorProvidersAsync(user);
+
+                            if (validador.Contains("Email"))
+                            {
+                                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+
+                                System.IO.File.WriteAllText("email2sv.txt",token);
+
+                                await HttpContext.SignInAsync(IdentityConstants.TwoFactorUserIdScheme,
+                                      Store2FA(user.Id, "Email"));
+
+                                return RedirectToAction("TwoFactor");
+                            }
+                        
+                        }
+
+                        var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
+                        
+
+                        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal);
+
+                        
+                        return RedirectToAction("About");
                     }
 
-                  var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
-                //var identity = new ClaimsIdentity("Identity.Aplication");
-                //identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                //identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+                    // realiza a contagem de tentativas de login com falha
 
-                await HttpContext.SignInAsync("Identity.Application", principal);
+                    await _userManager.AccessFailedAsync(user);
 
-                //var resultSignIn = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false,false);
-
-                //if (resultSignIn.Succeeded)
-                //{ 
-                    return RedirectToAction("About");
+                    if (await _userManager.IsLockedOutAsync(user))
+                    {
+                        ModelState.AddModelError("", "tentativa de vezes excedida, verifique o email cadastrado para istruções");
+                        //Email deve ser eviado com sugestão de altera~ção de senha
+                    }
                 }
                 ModelState.AddModelError("", "Usuário ou senha inválida!");
+                
             }
             return View();
+        }
+
+        public ClaimsPrincipal Store2FA( string userId, string provider)
+        {
+            var identity = new ClaimsIdentity(new List<Claim>
+            {
+                new Claim("sub", userId),
+                new Claim("amr", provider)
+        }, IdentityConstants.TwoFactorUserIdScheme);
+
+
+            return new ClaimsPrincipal(identity);
+
+
         }
 
         [HttpGet]
@@ -252,6 +297,52 @@ namespace App.Identity.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [HttpGet]
+        public IActionResult TwoFactor()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TwoFactor(TwoFactorModel model)
+        {
+            var result = await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Token expirado");
+                return View();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(result.Principal.FindFirstValue("sub"));
+
+                if(user != null)
+                {
+                    var isValid = await _userManager.VerifyTwoFactorTokenAsync
+                        (user, result.Principal.FindFirstValue("amr"), model.Token);
+
+                    if (isValid)
+                    {
+                        await HttpContext.SignOutAsync(IdentityConstants.TwoFactorUserIdScheme);
+                        var claimsPrincipal = await _userClaimsPrincipalFactory.CreateAsync(user);
+
+                        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, claimsPrincipal);
+
+                        return RedirectToAction("About");
+                    }
+
+                    ModelState.AddModelError("", "Token Inválido!");
+                    return View();
+                }
+
+                ModelState.AddModelError("", "Requisição Inválida!");
+            }
+            
+            return View();
         }
     }
 }

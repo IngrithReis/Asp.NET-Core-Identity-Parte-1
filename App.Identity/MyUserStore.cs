@@ -53,7 +53,7 @@ namespace App.Identity
         public static DbConnection GetOpenConection()
         {
             var conection = new SqlConnection(
-                "");
+                ");
 
             conection.Open();
             return conection;

@@ -32,7 +32,7 @@ namespace App.Identity
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
             services.AddDbContext<UsersDbContext>(
-                opt => opt.UseSqlServer(@""
+                opt => opt.UseSqlServer(@"Server = localhost; Database = Curso_Identity; Trusted_Connection = True"
                                         , sql => sql.MigrationsAssembly(migrationAssembly)));
 
 

@@ -53,7 +53,7 @@ namespace App.Identity
         public static DbConnection GetOpenConection()
         {
             var conection = new SqlConnection(
-                ");
+                "Server = localhost; Database = Curso_Identity; Trusted_Connection = True");
 
             conection.Open();
             return conection;
